@@ -1,10 +1,8 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { RecruitmentOutput } from "../types";
 
-const API_KEY = process.env.API_KEY || '';
-
-// Initialize the client
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+// Initialize the client with the environment variable directly
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const MODEL_NAME = 'gemini-3-pro-preview';
 
@@ -33,7 +31,7 @@ const RECRUITMENT_SCHEMA: Schema = {
 };
 
 export const generateRecruitmentAssets = async (rawNotes: string): Promise<RecruitmentOutput> => {
-  if (!API_KEY) throw new Error("API Key is missing.");
+  if (!process.env.API_KEY) throw new Error("API Key is missing. Please set the API_KEY environment variable.");
 
   try {
     const response = await ai.models.generateContent({
@@ -66,7 +64,7 @@ export const generateRecruitmentAssets = async (rawNotes: string): Promise<Recru
 };
 
 export const createChatSession = (context: RecruitmentOutput | null) => {
-    if (!API_KEY) throw new Error("API Key is missing.");
+    if (!process.env.API_KEY) throw new Error("API Key is missing.");
 
     let systemInstruction = "You are a helpful Recruitment Assistant using Gemini 3 Pro. You assist users in refining job descriptions or preparing for interviews.";
     
@@ -90,10 +88,6 @@ export const createChatSession = (context: RecruitmentOutput | null) => {
         model: MODEL_NAME,
         config: {
             systemInstruction: systemInstruction,
-            // We don't necessarily need max thinking for simple chat, but user requested Gemini 3 Pro.
-            // We will not force a huge thinking budget for every chat turn to ensure responsiveness,
-            // unless the user asks something very complex. For this implementation, we stick to standard inference
-            // for chat to keep the UX snappy, as the heavy lifting was done in generation.
         }
     });
 };
